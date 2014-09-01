@@ -20,6 +20,91 @@ A JavaScript library that provides a usable implementation of the HTML5 [dropzon
 
 Supports: IE10+, Chrome, Firefox, Safari
 
+###Usage
+Allows you to store any data you like in the data transfer object, getting round the major IE limitation which usually only allows "Text" or "Url" in the set/get Data methods.  By using the dropzone attribute, you don't need to implement dragover and dragenter event handlers in order to accept the drop.  You also get some CSS classes added and removed when a drag is over a valid drop target and a valid drop effect is selected.
+
+```html
+<div id="paper" draggable="true" ondragstart="startDragPaper(event)"></div>
+<div id="apple" draggable="true" ondragstart="startDragApple(event)"></div>
+    
+<div dropzone="move s:text/x-paper" ondrop="handleDropPaper(event)"></div>
+<div dropzone="move s:text/x-apple" ondrop="handleDropApple(event)"></div>
+
+<script src="dropzone.min.js"></script>
+<script>
+
+      function startDragPaper(e) {
+        e.dataTransfer.setData("text/x-paper", "Data for the x-paper drag type");
+      }
+
+      function startDragApple(e) {
+        e.dataTransfer.setData("text/x-apple", "Data for the x-apple type");
+      }
+        
+      function handleDropPaper(e) {
+         e.dataTransfer.getData("x-paper"); // "Data for the x-paper drag type"
+      }
+
+       function handleDropApple(e) {
+         e.dataTransfer.getData("x-paper"); // "Data for the x-apple drag type"
+      }
+      
+</script>
+```
+
+For anyone familiar with the HTML5 drag and drop API, this code is roughly the equivalent of this code which will not run on IE, and will not handle adding and removing the classes to the drop target elegantly when there are other elements inside the drop target... :
+
+```html
+<!-- (FOR ILLUSTRATION ONLY - DOES NOT WORK !!) -->
+<div id="paper" draggable="true" ondragstart="startDragPaper(event)"></div>
+<div id="apple" draggable="true" ondragstart="startDragApple(event)"></div>
+    
+<div  ondragover="isPaper(event)" ondragenter="isPaper(event)" ondragleave="removeClass(event)" ondrop="handleDropPaper(event)"></div>
+<div  ondragover="isApple(event)" ondragenter="isApple(event)" ondragleave="removeClass(event)" ondrop="handleDropApple(event)"></div>
+
+<script>
+
+      function startDragPaper(e) {
+        // This will throw an exception on IE
+        e.dataTransfer.setData("text/x-paper", "Data for the x-paper drag type");
+      }
+
+      function startDragApple(e) {
+        // This will throw an exception on IE
+        e.dataTransfer.setData("text/x-apple", "Data for the x-apple type");
+      }
+
+      function isPaper(event) {
+        if (event.dataTransfer.types.indexOf("x-apple") !== -1) {
+          event.target.classList.add("drag-matches");
+          event.stopPropagation();
+        }
+      }
+       
+      function isApple(event) {
+        if (event.dataTransfer.types.indexOf("x-paper") !== -1) {
+          event.target.classList.add("drag-matches");
+          event.stopPropagation();
+        }
+      }
+
+      function removeClass(event) {
+        event.target.classList.remove("drag-matches");
+      }
+
+      function handleDropPaper(e) {
+         // will throw an error on IE
+         e.dataTransfer.getData("x-paper"); // "Data for the x-paper drag type"
+      }
+
+       function handleDropApple(e) {
+         // will throw an error on IE
+         e.dataTransfer.getData("x-paper"); // "Data for the x-apple drag type"
+      }
+      
+</script>
+```
+
 ## Why do i need a library for native drag and drop ?
 
 I've spent many months toiling with HTML5 drag and drop on different browsers, this library represents the sum of my knowledge on the subject, hopefully it will save anyone using it a lot of time and hassle.  
@@ -28,23 +113,26 @@ I've spent many months toiling with HTML5 drag and drop on different browsers, t
 HTML5 drag and drop does not work cross browser regardless of the dropzone attribute.  It's clumsy and requires working with lots of events.  For example to allow a user to drag one element and drop it on top of another you need to :
 
 1. Implement the dragstart event.
-2. Implement dragenter and dragover handlers on the target.
-3. Implement dragleave if you want to style the node.
-4. Implement a drop handler.
+2. Implement dragenter and ...
+3. ...dragover handlers on the target, at the very least to cancel the events
+4. Implement dragleave if you planned on styling the node on dragover/enter to show it can take the drop.
+5. Implement a drop handler.
 
 The deal is that on dragstart - you put data into the [DataTransfer](http://html5index.org/Drag%20and%20Drop%20-%20DataTransfer.html) object, this data is keyed by type - so you can provide a representation in plain text, as HTML or whatever you like.  When a drop happens either in another web page or a native application, the data store will be asked for data according to what the recieving application wants.
 
-For dropping, dragenter and dragover at least need to be cancelled if you want an element to accept the drop, so you must implement them even if to do nothing other than cancel the drag event.
+dragenter and dragover at least need to be cancelled if you want an element to accept the drop, so you must implement them even if to do nothing other than cancel the drag event.
 
-###How to I decide whether to cancel the event ?
-The default action of the browser in this case is not to allow a drop, so we need to cancel the event it if we want to change that.  In order to decide whether or not you accept a drop - you need to consider a couple of things :
+### So how to I decide whether to cancel the dragenter/dragover events ?
+The default action of the browser in this case is not to allow a drop, so we need to cancel the dragenter/dragover events on any drop target it if we want to change that.  In order to decide whether or not you accept a drop - you need to consider a number of things :
 
 ####Do I recognise the type of what is being dragged ?
-During dragover/enter you get access to a list of strings, these being the types of things that are currently being dragged.  Some browsers provide a list of [DataTransferItems](http://html5index.org/Drag%20and%20Drop%20-%20DataTransferItem.html) but some don't.  The data transfer item doesn't help here all that much since you only get told the "kind" of thing in addition to the type - i.e. is it a file or a string.  You cannot see exactly what is being dragged due to security considerations, which is fair enough.  This is generally workable except that in Internet Explorer including version 11 - you cannot store any other information except "Text" and "Url".  You therefore have no hope of conditionally accepting a drop if you based your decision solely  on the contents of what is being dragged.  If you try the examples from the spec. IE will throw an exception as soon as you try and store something that is not "Text" or "Url".
+During dragover/enter you get access to a list of strings, these being the types of things that are currently being dragged.  Some browsers provide a list of [DataTransferItems](http://html5index.org/Drag%20and%20Drop%20-%20DataTransferItem.html) but some don't.  The data transfer item doesn't help here all that much since you only get told the "kind" of thing in addition to the type - i.e. is it a file or a string.  You cannot see exactly what is being dragged due to security considerations, which is fair enough.  
+
+This is generally workable, __except that in Internet Explorer including version 11 - you cannot store any other information except "Text" and "Url"__.  You therefore have no hope of conditionally accepting a drop if you based your decision solely  on the contents of what is being dragged.  If you try the examples from the spec. IE will throw an exception as soon as you try and store something that is not "Text" or "Url".  
 
 ####Does the drag source allow the effect I want to apply ?
 
-There are two properties of interest here - effectAllowed and dropEffect. The general idea seems to be that the source of a drag indicates (by setting effectAllowed) that it can be (e.g.) moved and copied, or that it can only be copied.  The drop target can specify which action it wants to take on dragover by setting the dropEffect, e.g. if it sets the dropEffect to link and the effectAllowed is "move" - then it would seem reasonable that the drop should not be allowed.  I've implemented this part at least, but here's more information...
+There are two properties of interest here - effectAllowed and dropEffect. The general idea seems to be that the source of a drag indicates (by setting effectAllowed) that it can be (e.g.) moved and copied, or that it can only be copied.  The drop target can specify which action it wants to take on dragover by setting the dropEffect, e.g. if it sets the dropEffect to link and the effectAllowed is "move" - then it would seem reasonable that the drop should not be allowed.  This is how all browsers except IE work.  This library fixes this behaviour on IE.
 
 ##### Drop Effect and Effect Allowed
 You can set effectAllowed ondragstart, and dropEffect on dragover.  The information below is regardless
@@ -63,7 +151,75 @@ cursor to "copy" but IE set it to "link".  IE seems to have "link" as always win
 
 ######3. Is the dropEffect reported at the source element on dragend ?
 
-The spec shows that the source can listen for the dragend event to see what happened.  It should look at the dropEffect within this event. Chrome, Mozilla and Safari work as you would hope here, the drop effect appears in the dragend event. In IE if the effect allowed is a simple value e.g. "copy" then any successfull drop results in this value  appearing as the dropEffect on dragend.  If the effectAllowed was a compound value like copMove and tried to select "move" on dragover by setting the dropEffect, you're out of luck, that will come through as  dropEffect = "none" at the source on dragend. You are stuck with one cursor & one dropEffect and that is the effectAllowed set on dragstart if that effect is a simple value.   Interestingly the dropEffect it seems does come through when you drag into a native application.
+The spec shows that the source can listen for the dragend event to see what happened.  It should look at the dropEffect within this event. Chrome, Mozilla and Safari work as you would hope here, the drop effect appears in the dragend event. In IE if the effect allowed is a simple value e.g. "copy" then any successfull drop results in this value  appearing as the dropEffect on dragend.  If the effectAllowed was a compound value like copyMove and tried to select "move" on dragover by setting the dropEffect, you're out of luck, that will come through as  dropEffect = "none" at the source on dragend. You are stuck with one cursor & one dropEffect and that is the effectAllowed set on dragstart if that effect is a simple value.     
+
+```javascript
+// implemented on the draggable source
+function dragStartHandler(event) {
+   event.dataTransfer.effectAllowed = "move"
+}
+
+// implemented on the drop target
+function dragOverHandler(event) {
+   event.dataTransfer.dropEffect = "move";
+   ...
+}
+
+function dragEndHandler(event) {
+  // following a successful drop...
+    event.dataTransfer.dropEffect; // "move" on all browsers
+}
+
+```
+
+Also - supposing we did this :
+
+```javascript
+// implemented on the draggable source
+function dragStartHandler(event) {
+   event.dataTransfer.effectAllowed = "copyMove"
+}
+
+// implemented on the drop target
+function dragOverHandler(event) {
+   event.dataTransfer.dropEffect = "link";
+   ...
+}
+```
+Them the drop would not be allowed, as the selected dropEffect was not one of the effectAllowed values. IE would normally allow the drop, however by using this library we bring it inline with the other browsers.
+
+Also, supposing we decided that we tried this
+
+```javascript
+// implemented on the draggable source
+function dragStartHandler(event) {
+   event.dataTransfer.effectAllowed = "copyMove"
+}
+
+// implemented on the drop target
+function dragOverHandler(event) {
+   event.dataTransfer.dropEffect = "move";
+   ...
+}
+
+function dragEndHandler(event) {
+  // following a successful drop...
+    event.dataTransfer.dropEffect; // "move" on all browsers except IE which reports "none"
+}
+
+```
+
+Interestingly the dropEffect it seems does come through when you drag into a native application.  
+
+However, to fix this I introduced a new method you can call called getDropEffect() :
+
+```javascript
+function dragEndHandler(event) {
+  // following a successful drop...with effectAllowed set to copyMove
+    event.dataTransfer.dropEffect; // "move" on all browsers except IE which reports "none"
+    event.dataTransfer.getDropEffect(); // "move" on all browsers.
+}
+```
 
 ###### Other notes
 
@@ -73,14 +229,44 @@ On Safari on a mac - effectAllowed cannot be set programatically, therefore any 
 
 Should the "operation" part of the dropzone be used to set the drop effect ?  My conclusion was probably yes, provided that keyboard shortcuts can change it - i.e. if you do nothing you get the operation, otherwise you get the operation as specified by the keyboard.
 
-If you want to do something to the source element based on dropEffect - then you must allow only one effectAllowed copy, move or link if you do not set it it will become "copy".  The best way to do this is to use the ondrop event and check whether any modifier keys were pressed and take any action then.  Otherwise if you don't need to supprt IE, you can happily listen for dragends at the source and reliably get the dropEffect.
+###<code>event.getDropEffect()</code>
+If you want to use the browsers native dropEffect property reliably to do something to the source element based on dropEffect - then you must allow only one effectAllowed copy, move or link if you do not set it it will become "copy".  Otherwise you should use the getDropEvent function in the dragend handler which reliably works in IE for compund values of the effectAllowed property.
 
-I thought it might useful to add a class based on the dropEffect -  drag-matches.copy  drag-matches.move or drag-matches.link. 
+```html
 
-If you need to do something based on dropeffect at dragend - there are limitations, to get it to work on IE you must have only one effectAllowed set on the dragstart handler.  Suppose you wanted to decorate or remove the source element based on the dropEffect - you would need to check the keyboard modifiers and figure it out that way - or you could see whether the element has the .copy, .move or .link class added. 
+<ol dropzone="move string:text/x-example" ondragstart="dragStartHandler(event)" ondragend="dragEndHandler(event)">
 
-So - I fixed up setting dropEffect so that it prevents the drop on IE if the effectAllowed is set, bringing it inline with the other browsers.  It can also be used to influence the cursor on Chrome and Safari, and in reporting the dropEffect at the source on dragEnd on Chrome, Safari and Firefox.  On IE it will not affect the cursor or what gets reported at the source unless the effectAllowed is "copy", "move" or "link" and the dropEffect matches it exactly.
+<script>
+   /*
+       On drag start we allow the element to be moved or copied, on drag end we want to
+       remove the element if the selected dropEffect was "move". Because we used a 
+       'compound' effectAllowed (copyMove), Internet Explorer unforunately reports that
+       the dropEffect was "none" on the dragend no matter what we set it to on dragover.
+       The effect will be set on the dropzone based on the keyboard modifiers, if none
+       were used, we get the default for the dropzone which was "move" in the markup above.
+    */
+   function dragStartHandler(event) {
+      if (event.target instanceof HTMLLIElement) {
 
+       event.dataTransfer.setData("text/x-my-type", event.target.dataset.value);
+     event.dataTransfer.effectAllowed = 'copyMove'; // only allow copies or moves
+    } 
+    }
+
+  function dragEndHandler(event) {
+        // use this instead of event.datatTransfer.dropEffect
+    var dropEffect = event.dataTransfer.getDropEffect();
+
+    if (dropEffect === "move") {
+         event.target.parentElement.removeChild(event.target);
+      }
+
+    }
+</script>
+
+```
+
+You also get a class added ondragover reflecting the dropEffect -  drag-matches.copy  drag-matches.move or drag-matches.link. 
 
 
 ## Using ``dropzone``
@@ -235,4 +421,3 @@ var listItems = [].slice.call(document.querySelectorAll("li"), 0);
 This produces the following :
 
 ![Alt text](/examples/images/custom-drag-image.png)
-

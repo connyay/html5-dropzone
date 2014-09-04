@@ -12,24 +12,22 @@ A small JavaScript library that provides a usable implementation of the HTML5 [d
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
 - [Features](#features)
 - [Usage](#usage)
 - [Why do i need a library for native drag and drop ?](#why-do-i-need-a-library-for-native-drag-and-drop-)
 - [Using ``dropzone``](#using-dropzone)
-   - [Setting up a dropzone](#setting-up-a-dropzone)
-- [Styling the dropzone](#styling-the-dropzone)
-- [Multiple dropzones](#multiple-dropzones)
+  - [Setting up a dropzone](#setting-up-a-dropzone)
+  - [Styling the dropzone](#styling-the-dropzone)
+  - [Multiple dropzones](#multiple-dropzones)
 - [Drag sources](#drag-sources)
   - [Using ``draggable()``](#using-draggable)
-    - [Basic use](#basic-use)
-      - [<code>setData()</code>](#codesetdatacode)
-      - [<code>effectAllowed()</code>](#codeeffectallowedcode)
+    - [<code>setData()</code>](#codesetdatacode)
+    - [<code>effectAllowed()</code>](#codeeffectallowedcode)
     - [Customising the drag image](#customising-the-drag-image)
-    - [<code>ghost()</code>](#codeghostcode)
-  - [<code>event.getDropEffect()</code>](#codeeventgetdropeffectcode)
+      - [<code>ghost()</code>](#codeghostcode)
+    - [<code>event.getDropEffect()</code>](#codeeventgetdropeffectcode)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -52,7 +50,7 @@ A small JavaScript library that provides a usable implementation of the HTML5 [d
   ```javascript
     onDragStart: function(event) {
       // this now works on IE
-    event.dataTransfer.setData("text/x-example", "foo");
+      event.dataTransfer.setData("text/x-example", "foo");
     }
     ```
 3. Reliably read the dropEffect on source elements at the dragend using getDropEffect(). e.g. if you haven't tried to do this :
@@ -70,7 +68,7 @@ A small JavaScript library that provides a usable implementation of the HTML5 [d
   function dragEndHandler(event) {
       // following a successful drop...
       event.dataTransfer.dropEffect; // "move" on all browsers except IE which reports "none"
-        event.dataTransfer.getDropEffect(); // "move" on all browsers
+      event.dataTransfer.getDropEffect(); // "move" on all browsers
   }
     ```
 4. Easily accept files*
@@ -81,22 +79,23 @@ A small JavaScript library that provides a usable implementation of the HTML5 [d
           event.dataTransfer.files; // contains any files dropped,
        });
     ```
-    *(on Firefox and IE this will allow a drop of any file, on Chrome and Safari it will only cancel the dragover/enter events where the file is actually of text/csv type)
+    *(on Firefox and IE this will allow a drop of any file, on Chrome and Safari it will only cancel the dragover/enter events where the file is actually of text/csv type) However since the dropzone will cancel the dragovers if any file is of type CSV you need
+    to check the type on drop anyway incase there was more than one file in the drag.
     
 5. <code>draggable</code> function to ease working with drag sources and provide custom ghost elements even on Internet Explorer.
   ```javascript
-      // make the element draggable, with two content types, 
-        // it can only be copied and that it has a custom ghost element function
+    // make the element draggable, with two content types, 
+    // it can only be copied and that it has a custom ghost element function
     draggable("#dragMe")
           .setData("text/plain", "Some plain text")
-            .setData("text/html", "Some <b>HTML</b> text")
-            .effectAllowed("copy")
-            .ghost(function() { 
+          .setData("text/html", "Some <b>HTML</b> text")
+          .effectAllowed("copy")
+          .ghost(function() { 
               var p = document.createElement("p");
-                p.innerHTML = "I'm a custom ghost";
-                p.classList.add("my-custom-ghost");
-                return p;
-            });
+              p.innerHTML = "I'm a custom ghost";
+              p.classList.add("my-custom-ghost");
+              return p;
+          });
   ```
 
 
@@ -267,7 +266,7 @@ function dragOverHandler(event) {
 }
 
 function dragEndHandler(event) {
-  // following a successful drop...
+    // following a successful drop...
     event.dataTransfer.dropEffect; // "move" on all browsers
 }
 
@@ -288,7 +287,7 @@ function dragOverHandler(event) {
 }
 
 function dragEndHandler(event) {
-  // following a successful drop...
+    // following a successful drop...
     event.dataTransfer.dropEffect; // "move" on all browsers except IE which reports "none"
 }
 
@@ -297,7 +296,7 @@ Then the dropEffect is reported as "none" on IE, but is correctly reported on th
 
 ```javascript
 function dragEndHandler(event) {
-  // following a successful drop...with effectAllowed set to copyMove
+    // following a successful drop...with effectAllowed set to copyMove
     event.dataTransfer.dropEffect; // "move" on all browsers except IE which reports "none"
     event.dataTransfer.getDropEffect(); // "move" on all browsers.
 }
@@ -326,7 +325,7 @@ This example will make the element accept any drag that contains data text/plain
 
 
 
-#### Setting up a dropzone
+### Setting up a dropzone
 
 This simple example allows the user to drag the element with id "paper" and drop it on the div with id "trashcan".  Using this library (and the dropzone attribute), there is no need to cancel the dragenter and dragover events and provide styling in the dragenter/dragleave events.
 
@@ -390,11 +389,11 @@ Now we can setup a 2nd dragsource and dropzone.  The 2nd dragsource is an apple,
 <script>
 
   function startDragPaper(e) {
-    e.dataTransfer.setData("text/x-paper", "put whatever you like in here");
+     e.dataTransfer.setData("text/x-paper", "put whatever you like in here");
   }
 
   function startDragApple(e) {
-    e.dataTransfer.setData("text/x-apple", "put whatever you like in here");
+     e.dataTransfer.setData("text/x-apple", "put whatever you like in here");
   }
         
   // drop handlers not shown
@@ -410,8 +409,6 @@ Now we can setup a 2nd dragsource and dropzone.  The 2nd dragsource is an apple,
 Depending on what you want to do, you don't have to use this function at all, however, if you want a customised drag image to work cross browser (read on IE) then you do need to use it.
 
 The draggable function lets you specify nodes that can be dragged, what gets put into the data transfer, what the allowed effects are and a way to customise the drag image.  
-
-#### Basic use
 
 ```html
 <div id="draggable"></div>
@@ -435,17 +432,17 @@ document.getElementById("draggable")
 ```
 The above sample will not work cross browser without this library but it will once you use it so you don't have to use draggable for the above if you don't want to.  One other thing is that the value you provide for a type can be a string value or a function that produces a string.  if it's a function, it gets called when the drag starts.
 
-##### <code>setData()</code>
+#### <code>setData()</code>
 Equivalent to the DataTransfer.setData function, but saves you having to implement dragstart.  The 2nd param can be a string or a function that produces a string, gets called on drag start.
 
-##### <code>effectAllowed()</code>
+#### <code>effectAllowed()</code>
 Equivalent to setting the DataTransfer.effectAllowed property, but saves you having to implement dragstart.  The 2nd param can be a string or a function that produces a string, gets called on drag start.
 
 #### Customising the drag image
 
 One of the major holes of the IE implementation is the inability to provide a custom drag image.  The spec actually allows you to use a DOM element as the custom drag image, the trick being that it has to be visible.  To provide a custom drag image use the "ghost" function.  e.g consider a multi-select list.  If the user selects more than one thing, then we need to be able to indicate in the drag that more than one thing is being dragged.  In this example we provide a custom ghost image that addes into a UL a clone of all the list items having the "selected" class.
 
-####<code>ghost()</code>
+#####<code>ghost()</code>
 
 [Custom drag image demo](http://stevendwood.github.io/examples/custom-drag-image.html)
 
@@ -455,34 +452,34 @@ The ghost function takes as an argument either a DOM node or a function that pro
 ```javascript
 var listItems = [].slice.call(document.querySelectorAll("li"), 0);
 
-    listItems.forEach(function(li) {
+listItems.forEach(function(li) {
 
-      li.addEventListener("click", function() {
+    li.addEventListener("click", function() {
         li.classList.toggle("selected");
-      });
+    });
 
-      
-      draggable(li)
+
+    draggable(li)
         .setData("fruits", function() {
-          return [].map.call(document.querySelectorAll(".fruits li.selected"), function(e) { 
-            return e.innerHTML; 
-          });
+            return [].map.call(document.querySelectorAll(".fruits li.selected"), function(e) {
+                return e.innerHTML;
+            });
         })
         .ghost(function() {
-          var dragImg = document.createElement("ul");
-          [].forEach.call(document.querySelectorAll(".fruits li.selected"), function(li) {
-            dragImg.appendChild(li.cloneNode(true));
-          });
+            var dragImg = document.createElement("ul");
+            [].forEach.call(document.querySelectorAll(".fruits li.selected"), function(li) {
+                dragImg.appendChild(li.cloneNode(true));
+            });
 
-          return dragImg;
+            return dragImg;
         });
-      });
+});
 
 
-      document.getElementById("dropZone")
-        .addEventListener("drop", function(ev) { 
-          this.innerHTML = ev.dataTransfer.getData("fruits");
-        });
+document.getElementById("dropZone")
+    .addEventListener("drop", function(ev) {
+        this.innerHTML = ev.dataTransfer.getData("fruits");
+    });
 
 ```
 
@@ -490,7 +487,7 @@ This produces the following :
 
 [Custom drag image demo](http://stevendwood.github.io/examples/multi-select.html)
 
-###<code>event.getDropEffect()</code>
+####<code>event.getDropEffect()</code>
 If you want to use the browsers native dropEffect property reliably to do something to the source element based on dropEffect - then you must allow only one effectAllowed copy, move or link if you do not set it it will become "copy".  Otherwise you should use the getDropEvent function in the dragend handler which reliably works in IE for compund values of the effectAllowed property.
 
 ```html
@@ -509,9 +506,9 @@ If you want to use the browsers native dropEffect property reliably to do someth
    function dragStartHandler(event) {
       if (event.target instanceof HTMLLIElement) {
 
-       event.dataTransfer.setData("text/x-my-type", event.target.dataset.value);
-     event.dataTransfer.effectAllowed = 'copyMove'; // only allow copies or moves
-    } 
+         event.dataTransfer.setData("text/x-my-type", event.target.dataset.value);
+         event.dataTransfer.effectAllowed = 'copyMove'; // only allow copies or moves
+      } 
     }
 
   function dragEndHandler(event) {
@@ -520,9 +517,8 @@ If you want to use the browsers native dropEffect property reliably to do someth
 
     if (dropEffect === "move") {
          event.target.parentElement.removeChild(event.target);
-      }
-
     }
+  }
 </script>
 
 ```
